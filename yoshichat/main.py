@@ -1,7 +1,7 @@
 import os
 import sqlite3
 from typing import List
-from fastapi import FastAPI, WebSocket, WebSocketDisconnect, HTTPException
+from fastapi import FastAPI, HTTPException
 from fastapi.staticfiles import StaticFiles
 from pydantic import BaseModel
 
@@ -48,25 +48,6 @@ def init_db():
 
 init_db()
 
-# リアルタイム通信用の接続管理クラス
-class ConnectionManager:
-    def __init__(self):
-        self.active_connections: dict[str, WebSocket] = {}
-
-    async def connect(self, yoshi_id: str, websocket: WebSocket):
-        await websocket.accept()
-        self.active_connections[yoshi_id] = websocket
-
-    def disconnect(self, yoshi_id: str):
-        if yoshi_id in self.active_connections:
-            del self.active_connections[yoshi_id]
-
-    async def send_personal_message(self, message: dict, yoshi_id: str):
-        if yoshi_id in self.active_connections:
-            await self.active_connections[yoshi_id].send_json(message)
-
-manager = ConnectionManager()
-
 # リクエストデータの定義
 class UserRegister(BaseModel):
     yoshi_id: str
@@ -80,6 +61,12 @@ class UserLogin(BaseModel):
 class FriendRequest(BaseModel):
     my_id: str
     target_id: str
+
+class MessageSend(BaseModel):
+    sender_id: str
+    receiver_id: str
+    content: str
+    is_stamp: bool = False
 
 # API: ユーザー登録
 @app.post("/api/register")
@@ -111,7 +98,7 @@ def login(user: UserLogin):
 
 # API: フレンド申請
 @app.post("/api/request_friend")
-async def request_friend(req: FriendRequest):
+def request_friend(req: FriendRequest):
     if req.my_id == req.target_id:
         raise HTTPException(status_code=400, detail="自分自身には申請できません")
         
@@ -138,13 +125,11 @@ async def request_friend(req: FriendRequest):
                    (req.my_id, req.target_id))
     conn.commit()
     conn.close()
-
-    await manager.send_personal_message({"type": "friend_request_received"}, req.target_id)
     return {"status": "ok"}
 
 # API: フレンド承認
 @app.post("/api/accept_friend")
-async def accept_friend(req: FriendRequest):
+def accept_friend(req: FriendRequest):
     conn = sqlite3.connect("chat.db")
     cursor = conn.cursor()
     cursor.execute("""
@@ -158,8 +143,6 @@ async def accept_friend(req: FriendRequest):
         
     conn.commit()
     conn.close()
-
-    await manager.send_personal_message({"type": "friend_request_accepted"}, req.target_id)
     return {"status": "ok"}
 
 # API: 届いているフレンド申請一覧を取得
@@ -209,37 +192,20 @@ def get_messages(my_id: str, target_id: str):
         "is_stamp": bool(row[3])
     } for row in rows]
 
-# WebSocket エンドポイント
-@app.websocket("/ws/{yoshi_id}")
-async def websocket_endpoint(websocket: WebSocket, yoshi_id: str):
-    await manager.connect(yoshi_id, websocket)
-    try:
-        while True:
-            data = await websocket.receive_json()
-            target_id = data.get("to")
-            content = data.get("content")
-            is_stamp = data.get("is_stamp", False)
-            
-            if target_id and content:
-                conn = sqlite3.connect("chat.db")
-                cursor = conn.cursor()
-                cursor.execute(
-                    "INSERT INTO messages (sender_id, receiver_id, content, is_stamp) VALUES (?, ?, ?, ?)",
-                    (yoshi_id, target_id, content, 1 if is_stamp else 0)
-                )
-                conn.commit()
-                conn.close()
+# API: メッセージを送信する（ポーリング用）
+@app.post("/api/send_message")
+def send_message(msg: MessageSend):
+    conn = sqlite3.connect("chat.db")
+    cursor = conn.cursor()
+    cursor.execute(
+        "INSERT INTO messages (sender_id, receiver_id, content, is_stamp) VALUES (?, ?, ?, ?)",
+        (msg.sender_id, msg.receiver_id, msg.content, 1 if msg.is_stamp else 0)
+    )
+    conn.commit()
+    conn.close()
+    return {"status": "ok"}
 
-                await manager.send_personal_message({
-                    "type": "message",
-                    "from": yoshi_id,
-                    "content": content,
-                    "is_stamp": is_stamp
-                }, target_id)
-    except WebSocketDisconnect:
-        manager.disconnect(yoshi_id)
-
-# 静くファイルの配信（一番最後に記述）
+# 静的ファイルの配信（一番最後に記述）
 app.mount("/", StaticFiles(directory="static", html=True), name="static")
 
 if __name__ == "__main__":
