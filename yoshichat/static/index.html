@@ -5,30 +5,32 @@
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YoshiChat</title>
     <style>
-        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
-        .container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px; box-sizing: border-box; }
-        h2 { text-align: center; color: #333; margin-top: 0; }
-        input, button { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
-        button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
-        button:hover { background: #0056b3; }
+        body { font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, "Helvetica Neue", Arial, sans-serif; background: #eef2f7; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { background: #fff; padding: 24px; border-radius: 12px; box-shadow: 0 4px 16px rgba(0,0,0,0.08); width: 100%; max-width: 400px; box-sizing: border-box; }
+        h2 { text-align: center; color: #0066cc; margin-top: 0; margin-bottom: 20px; }
+        input, button { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #d1d9e0; border-radius: 6px; box-sizing: border-box; font-size: 14px; }
+        input:focus { outline: none; border-color: #0066cc; }
+        button { background: #0066cc; color: white; border: none; font-weight: bold; cursor: pointer; transition: background 0.2s; }
+        button:hover { background: #0052a3; }
         .hidden { display: none !important; }
-        .error { color: red; font-size: 14px; text-align: center; margin: 5px 0; }
+        .error { color: #d93838; font-size: 13px; text-align: center; margin: 5px 0; }
         
-        /* チャット画面のデザイン */
-        #chat-screen { display: flex; flex-direction: column; height: 90vh; max-width: 600px; }
-        .chat-layout { display: flex; flex: 1; overflow: hidden; margin-top: 10px; }
-        .sidebar { width: 140px; border-right: 1px solid #ddd; padding-right: 8px; overflow-y: auto; }
-        .chat-main { flex: 1; display: flex; flex-direction: column; padding-left: 10px; }
-        .messages-box { flex: 1; border: 1px solid #ddd; border-radius: 4px; padding: 10px; overflow-y: auto; background: #fafafa; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
-        .message { padding: 8px 12px; border-radius: 8px; max-width: 75%; word-break: break-all; font-size: 14px; }
-        .message.sent { background: #dcf8c6; align-self: flex-end; }
-        .message.received { background: #fff; border: 1px solid #ddd; align-self: flex-start; }
-        .chat-input-area { display: flex; gap: 5px; }
+        /* チャット画面のデザイン（LINE風の青基調） */
+        #chat-screen { display: flex; flex-direction: column; height: 92vh; max-width: 650px; padding: 16px; }
+        .chat-header-bar { display: flex; justify-content: space-between; align-items: center; padding-bottom: 10px; border-bottom: 1px solid #eee; }
+        .chat-layout { display: flex; flex: 1; overflow: hidden; margin-top: 12px; gap: 12px; }
+        .sidebar { width: 160px; border-right: 1px solid #eee; padding-right: 8px; overflow-y: auto; }
+        .chat-main { flex: 1; display: flex; flex-direction: column; }
+        .messages-box { flex: 1; border: 1px solid #e1e8ed; border-radius: 8px; padding: 12px; overflow-y: auto; background: #f4f7fb; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .message { padding: 10px 14px; border-radius: 12px; max-width: 75%; word-break: break-all; font-size: 14px; line-height: 1.4; }
+        .message.sent { background: #0066cc; color: white; align-self: flex-end; border-bottom-right-radius: 2px; }
+        .message.received { background: #ffffff; color: #333; border: 1px solid #d1d9e0; align-self: flex-start; border-bottom-left-radius: 2px; }
+        .chat-input-area { display: flex; gap: 8px; }
         .chat-input-area input { margin: 0; }
-        .chat-input-area button { width: 80px; margin: 0; }
-        .user-item { padding: 6px; cursor: pointer; border-radius: 4px; font-size: 14px; margin-bottom: 4px; background: #e9ecef; text-align: center; }
-        .user-item:hover { background: #ced4da; }
-        .user-item.active { background: #007bff; color: white; }
+        .chat-input-area button { width: 90px; margin: 0; }
+        .user-item { padding: 8px 10px; cursor: pointer; border-radius: 6px; font-size: 14px; margin-bottom: 6px; background: #f0f4f8; color: #333; text-align: left; transition: background 0.1s; }
+        .user-item:hover { background: #e2e8f0; }
+        .user-item.active { background: #0066cc; color: white; font-weight: bold; }
     </style>
 </head>
 <body>
@@ -41,7 +43,7 @@
             <input type="password" id="login-password" placeholder="パスワード">
             <div id="login-error" class="error"></div>
             <button onclick="login()">ログイン</button>
-            <button onclick="switchMode('register')" style="background: #6c757d;">新規登録へ</button>
+            <button onclick="switchMode('register')" style="background: #64748b; margin-top: 4px;">新規登録へ</button>
         </div>
 
         <div id="register-form" class="hidden">
@@ -50,35 +52,38 @@
             <input type="password" id="reg-password" placeholder="パスワード">
             <div id="reg-error" class="error"></div>
             <button onclick="register()">登録する</button>
-            <button onclick="switchMode('login')" style="background: #6c757d;">ログインへ戻る</button>
+            <button onclick="switchMode('login')" style="background: #64748b; margin-top: 4px;">ログインへ戻る</button>
         </div>
     </div>
 
     <!-- チャットメイン画面 -->
     <div class="container hidden" id="chat-screen">
-        <div style="display: flex; justify-content: space-between; align-items: center;">
-            <h3 id="welcome-msg" style="margin: 0;"></h3>
-            <button onclick="logout()" style="width: auto; padding: 5px 10px; background: #dc3545; font-size: 12px;">ログアウト</button>
+        <div class="chat-header-bar">
+            <div>
+                <span style="font-size: 12px; color: #666; display: block;">ログイン中:</span>
+                <span id="welcome-msg" style="font-weight: bold; color: #0066cc; font-size: 15px;"></span>
+            </div>
+            <button onclick="logout()" style="width: auto; padding: 6px 12px; background: #ef4444; font-size: 12px; margin:0;">ログアウト</button>
         </div>
-        <hr style="margin: 10px 0;">
         
         <!-- フレンド申請エリア -->
-        <div>
-            <input type="text" id="friend-target-id" placeholder="追加したい人のyoshiID" style="display:inline-block; width: 68%; margin:0; font-size: 13px; padding: 6px;">
-            <button onclick="sendFriendRequest()" style="display:inline-block; width: 28%; margin:0; font-size: 13px; padding: 6px;">申請送信</button>
-            <div id="friend-requests-area" style="font-size: 13px; color: #555; margin-top: 5px;"></div>
+        <div style="margin-top: 10px; background: #f8fafc; padding: 8px; border-radius: 6px; border: 1px solid #e2e8f0;">
+            <div style="display: flex; gap: 6px;">
+                <input type="text" id="friend-target-id" placeholder="追加したい人のyoshiID" style="margin:0; font-size: 13px; padding: 8px;">
+                <button onclick="sendFriendRequest()" style="width: 100px; margin:0; font-size: 13px; padding: 8px;">申請送信</button>
+            </div>
+            <div id="friend-requests-area" style="font-size: 13px; color: #555; margin-top: 4px;"></div>
         </div>
 
         <div class="chat-layout">
             <!-- フレンド一覧サイドバー -->
             <div class="sidebar" id="friends-list">
-                <div style="font-weight: bold; font-size: 13px; margin-bottom: 6px; color: #666;">フレンド</div>
-                <!-- ここにフレンドが並ぶ -->
+                <div style="font-weight: bold; font-size: 13px; margin-bottom: 8px; color: #475569;">フレンド</div>
             </div>
 
             <!-- チャットメッセージ表示・入力エリア -->
             <div class="chat-main">
-                <div id="chat-header" style="font-weight: bold; font-size: 14px; margin-bottom: 5px; color: #333;">相手を選んでください</div>
+                <div id="chat-header" style="font-weight: bold; font-size: 14px; margin-bottom: 6px; color: #1e293b; padding-bottom: 4px; border-bottom: 1px solid #f1f5f9;">相手を選んでください</div>
                 <div class="messages-box" id="messages-box">
                     <!-- メッセージがここに表示されます -->
                 </div>
@@ -190,9 +195,9 @@
             const area = document.getElementById('friend-requests-area');
             if (requests.length > 0) {
                 area.innerHTML = requests.map(r => `
-                    <div style="background:#fff3cd; padding:4px; margin-bottom:2px; border-radius:3px; display:flex; justify-content:space-between; align-items:center;">
-                        <span>${r.name} (${r.yoshiID}) から申請</span>
-                        <button onclick="acceptFriend('${r.yoshiID}')" style="width:auto; padding:2px 6px; font-size:11px; margin:0;">承認</button>
+                    <div style="background:#fef3c7; padding:6px; margin-top:4px; border-radius:4px; display:flex; justify-content:space-between; align-items:center; border: 1px solid #fde68a;">
+                        <span style="color:#92400e;">${r.name} (${r.yoshiID}) から申請</span>
+                        <button onclick="acceptFriend('${r.yoshiID}')" style="width:auto; padding:3px 8px; font-size:12px; margin:0; background:#d97706;">承認</button>
                     </div>
                 `).join('');
             } else {
@@ -215,7 +220,7 @@
             const friends = await res.json();
             const listDiv = document.getElementById('friends-list');
             
-            let html = '<div style="font-weight: bold; font-size: 13px; margin-bottom: 6px; color: #666;">フレンド</div>';
+            let html = '<div style="font-weight: bold; font-size: 13px; margin-bottom: 8px; color: #475569;">フレンド</div>';
             friends.forEach(f => {
                 const activeClass = (currentTargetID === f.yoshiID) ? 'active' : '';
                 html += `<div class="user-item ${activeClass}" onclick="selectChat('${f.yoshiID}', '${f.name}')">${f.name}</div>`;
@@ -227,7 +232,7 @@
             currentTargetID = id;
             document.getElementById('chat-header').textContent = `${name} とのチャット`;
             loadMessages();
-            loadFriends(); // 選択中のハイライトを更新するため
+            loadFriends();
         }
 
         async function loadMessages() {
@@ -268,7 +273,6 @@
             loadMessages();
         }
 
-        // 定期的にデータ（申請・フレンド・メッセージ）を自動更新するポーリング処理
         function startPolling() {
             if (pollingTimer) clearInterval(pollingTimer);
             pollingTimer = setInterval(() => {
@@ -279,17 +283,17 @@
                         loadMessages();
                     }
                 }
-            }, 1500); // 1.5秒ごとにサーバーと同期
+            }, 1500);
         }
 
         function escapeHTML(str) {
             return str.replace(/[&'`<>"]/g, match => ({
                 '&': '&amp;',
-                QUOTE: '&quot;',
-                "'": '&#x27;',
-                '`': '&#x60;',
                 '<': '&lt;',
                 '>': '&gt;',
+                '"': '&quot;',
+                "'": '&#x27;',
+                '`': '&#x60;'
             })[match] || match);
         }
     </script>
