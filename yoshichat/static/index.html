@@ -2,360 +2,295 @@
 <html lang="ja">
 <head>
     <meta charset="UTF-8">
-    <meta name="viewport" content="width=device-width, initial-scale=1.0, maximum-scale=1.0, user-scalable=no">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <title>YoshiChat</title>
     <style>
-        * { box-sizing: border-box; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Roboto, sans-serif; }
-        body { margin: 0; background-color: #5c728a; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        body { font-family: sans-serif; background: #f0f2f5; margin: 0; padding: 0; display: flex; justify-content: center; align-items: center; height: 100vh; }
+        .container { background: #fff; padding: 20px; border-radius: 8px; box-shadow: 0 4px 12px rgba(0,0,0,0.1); width: 100%; max-width: 400px; box-sizing: border-box; }
+        h2 { text-align: center; color: #333; margin-top: 0; }
+        input, button { width: 100%; padding: 10px; margin: 8px 0; border: 1px solid #ccc; border-radius: 4px; box-sizing: border-box; }
+        button { background: #007bff; color: white; border: none; font-weight: bold; cursor: pointer; }
+        button:hover { background: #0056b3; }
+        .hidden { display: none !important; }
+        .error { color: red; font-size: 14px; text-align: center; margin: 5px 0; }
         
-        /* PC向けスタイル */
-        .box { 
-            background: white; 
-            width: 100%; 
-            max-width: 450px; 
-            height: 90vh; 
-            border-radius: 16px; 
-            display: flex; 
-            flex-direction: column; 
-            overflow: hidden; 
-            box-shadow: 0 8px 30px rgba(0,0,0,0.25); 
-        }
-
-        /* スマホ向けスタイル（画面幅600px以下） */
-        @media (max-width: 600px) {
-            body { align-items: stretch; }
-            .box { max-width: 100%; height: 100vh; border-radius: 0; box-shadow: none; }
-        }
-
-        .auth-container { padding: 30px 20px; text-align: center; justify-content: center; }
-        .auth-container input { width: 100%; padding: 12px; margin: 8px 0; border: 1px solid #ccc; border-radius: 6px; font-size: 16px; }
-        .auth-container button { width: 100%; padding: 12px; background: #06c755; color: white; border: none; border-radius: 6px; font-weight: bold; cursor: pointer; margin-top: 10px; }
-
-        header { background: #273238; color: white; padding: 15px; display: flex; justify-content: space-between; align-items: center; }
-        
-        .add-friend-bar { background: #f0f3f6; padding: 10px; border-bottom: 1px solid #ddd; display: flex; gap: 6px; }
-        .add-friend-bar input { flex: 1; padding: 8px; border: 1px solid #ccc; border-radius: 4px; font-size: 16px; }
-        .add-friend-bar button { padding: 8px 12px; background: #06c755; color: white; border: none; border-radius: 4px; font-weight: bold; cursor: pointer; font-size: 12px; }
-
-        .section-title { background: #eef2f5; padding: 6px 15px; font-size: 12px; font-weight: bold; color: #666; border-bottom: 1px solid #eee; }
-        .friend-list { flex: 1; overflow-y: auto; background: #ffffff; }
-        .friend-item { display: flex; align-items: center; padding: 10px 15px; border-bottom: 1px solid #f0f0f0; cursor: pointer; }
-        .friend-item:hover { background-color: #f8f9fa; }
-        .friend-avatar { width: 40px; height: 40px; border-radius: 50%; background: #06c755; color: white; display: flex; align-items: center; justify-content: center; font-weight: bold; margin-right: 12px; font-size: 16px; }
-        .friend-info { flex: 1; }
-        .friend-name { font-weight: bold; font-size: 14px; color: #333; }
-        .friend-id { font-size: 11px; color: #888; }
-        .accept-btn { background: #06c755; color: white; border: none; padding: 6px 12px; border-radius: 4px; cursor: pointer; font-size: 12px; font-weight: bold; }
-
-        #chat-flow { flex: 1; padding: 15px; overflow-y: auto; background-color: #7494c0; display: flex; flex-direction: column; gap: 10px; }
-        .msg-bubble { max-width: 70%; padding: 10px 14px; border-radius: 15px; font-size: 14px; line-height: 1.4; word-break: break-word; }
-        .msg-left { background: white; align-self: flex-start; border-top-left-radius: 2px; }
-        .msg-right { background: #85e249; align-self: flex-end; border-top-right-radius: 2px; }
-
-        .stamp-bubble { background: transparent !important; font-size: 60px; padding: 0 !important; line-height: 1; }
-
-        .input-area { padding: 10px; background: white; display: flex; gap: 8px; border-top: 1px solid #eee; align-items: center; }
-        .input-area input { flex: 1; padding: 10px; border: 1px solid #ddd; border-radius: 20px; outline: none; font-size: 16px; }
-        .input-area button { background: #06c755; color: white; border: none; padding: 8px 16px; border-radius: 20px; cursor: pointer; font-weight: bold; }
-        .stamp-toggle-btn { background: transparent; border: none; font-size: 22px; cursor: pointer; padding: 0 4px; }
-        .back-btn { background: transparent; color: white; border: none; font-size: 18px; cursor: pointer; padding: 0 8px; }
-
-        .stamp-picker { display: none; background: #f0f3f6; padding: 10px; border-top: 1px solid #ccc; grid-template-columns: repeat(5, 1fr); gap: 10px; text-align: center; }
-        .stamp-item { font-size: 32px; cursor: pointer; border-radius: 8px; padding: 5px; transition: transform 0.1s; user-select: none; }
-        .stamp-item:active { transform: scale(1.2); }
+        /* チャット画面のデザイン */
+        #chat-screen { display: flex; flex-direction: column; height: 90vh; max-width: 600px; }
+        .chat-layout { display: flex; flex: 1; overflow: hidden; margin-top: 10px; }
+        .sidebar { width: 140px; border-right: 1px solid #ddd; padding-right: 8px; overflow-y: auto; }
+        .chat-main { flex: 1; display: flex; flex-direction: column; padding-left: 10px; }
+        .messages-box { flex: 1; border: 1px solid #ddd; border-radius: 4px; padding: 10px; overflow-y: auto; background: #fafafa; margin-bottom: 10px; display: flex; flex-direction: column; gap: 8px; }
+        .message { padding: 8px 12px; border-radius: 8px; max-width: 75%; word-break: break-all; font-size: 14px; }
+        .message.sent { background: #dcf8c6; align-self: flex-end; }
+        .message.received { background: #fff; border: 1px solid #ddd; align-self: flex-start; }
+        .chat-input-area { display: flex; gap: 5px; }
+        .chat-input-area input { margin: 0; }
+        .chat-input-area button { width: 80px; margin: 0; }
+        .user-item { padding: 6px; cursor: pointer; border-radius: 4px; font-size: 14px; margin-bottom: 4px; background: #e9ecef; text-align: center; }
+        .user-item:hover { background: #ced4da; }
+        .user-item.active { background: #007bff; color: white; }
     </style>
 </head>
 <body>
 
-    <div id="auth-screen" class="box auth-container">
+    <!-- ログイン・登録画面 -->
+    <div class="container" id="auth-container">
         <h2>YoshiChat</h2>
-        <input type="text" id="yoshi-id" placeholder="yoshiID (例: yoshi123)">
-        <input type="text" id="user-name" placeholder="表示名 (例: ヨシ)">
-        <input type="password" id="password" placeholder="パスワード">
-        <button onclick="register()">新規登録して開始</button>
-        <button onclick="login()" style="background: #a4b0be;">ログイン</button>
-    </div>
-
-    <div id="list-screen" class="box" style="display: none;">
-        <header>
-            <span id="my-info" style="font-weight: bold;">トーク</span>
-            <button onclick="logout()" style="background: transparent; color: #ff6b6b; border: none; cursor: pointer; font-size: 12px;">ログアウト</button>
-        </header>
-
-        <div class="add-friend-bar">
-            <input type="text" id="add-target-id" placeholder="IDで申請送信">
-            <button onclick="requestFriend()">申請</button>
+        <div id="login-form">
+            <input type="text" id="login-id" placeholder="yoshiID">
+            <input type="password" id="login-password" placeholder="パスワード">
+            <div id="login-error" class="error"></div>
+            <button onclick="login()">ログイン</button>
+            <button onclick="switchMode('register')" style="background: #6c757d;">新規登録へ</button>
         </div>
 
-        <div class="friend-list">
-            <div id="request-section" style="display: none;">
-                <div class="section-title">届いている申請</div>
-                <div id="request-list"></div>
+        <div id="register-form" class="hidden">
+            <input type="text" id="reg-id" placeholder="yoshiID (半角英数字)">
+            <input type="text" id="reg-name" placeholder="表示名 (ニックネーム)">
+            <input type="password" id="reg-password" placeholder="パスワード">
+            <div id="reg-error" class="error"></div>
+            <button onclick="register()">登録する</button>
+            <button onclick="switchMode('login')" style="background: #6c757d;">ログインへ戻る</button>
+        </div>
+    </div>
+
+    <!-- チャットメイン画面 -->
+    <div class="container hidden" id="chat-screen">
+        <div style="display: flex; justify-content: space-between; align-items: center;">
+            <h3 id="welcome-msg" style="margin: 0;"></h3>
+            <button onclick="logout()" style="width: auto; padding: 5px 10px; background: #dc3545; font-size: 12px;">ログアウト</button>
+        </div>
+        <hr style="margin: 10px 0;">
+        
+        <!-- フレンド申請エリア -->
+        <div>
+            <input type="text" id="friend-target-id" placeholder="追加したい人のyoshiID" style="display:inline-block; width: 68%; margin:0; font-size: 13px; padding: 6px;">
+            <button onclick="sendFriendRequest()" style="display:inline-block; width: 28%; margin:0; font-size: 13px; padding: 6px;">申請送信</button>
+            <div id="friend-requests-area" style="font-size: 13px; color: #555; margin-top: 5px;"></div>
+        </div>
+
+        <div class="chat-layout">
+            <!-- フレンド一覧サイドバー -->
+            <div class="sidebar" id="friends-list">
+                <div style="font-weight: bold; font-size: 13px; margin-bottom: 6px; color: #666;">フレンド</div>
+                <!-- ここにフレンドが並ぶ -->
             </div>
 
-            <div class="section-title">フレンド一覧</div>
-            <div id="friend-list"></div>
-        </div>
-    </div>
-
-    <div id="chat-screen" class="box" style="display: none;">
-        <header>
-            <button class="back-btn" onclick="showListScreen()">＜</button>
-            <span id="chat-target-name" style="font-weight: bold;"></span>
-            <div style="width: 24px;"></div>
-        </header>
-
-        <div id="chat-flow"></div>
-
-        <div class="input-area">
-            <button class="stamp-toggle-btn" onclick="toggleStampPicker()">😊</button>
-            <input type="text" id="message-input" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter') sendMessage()">
-            <button onclick="sendMessage()">送信</button>
-        </div>
-
-        <div id="stamp-picker" class="stamp-picker">
-            <span class="stamp-item" onclick="sendStamp('👍')">👍</span>
-            <span class="stamp-item" onclick="sendStamp('❤️')">❤️</span>
-            <span class="stamp-item" onclick="sendStamp('😊')">😊</span>
-            <span class="stamp-item" onclick="sendStamp('🎉')">🎉</span>
-            <span class="stamp-item" onclick="sendStamp('🔥')">🔥</span>
-            <span class="stamp-item" onclick="sendStamp('😭')">😭</span>
-            <span class="stamp-item" onclick="sendStamp('😎')">😎</span>
-            <span class="stamp-item" onclick="sendStamp('🙏')">🙏</span>
-            <span class="stamp-item" onclick="sendStamp('✨')">✨</span>
-            <span class="stamp-item" onclick="sendStamp('🤔')">🤔</span>
+            <!-- チャットメッセージ表示・入力エリア -->
+            <div class="chat-main">
+                <div id="chat-header" style="font-weight: bold; font-size: 14px; margin-bottom: 5px; color: #333;">相手を選んでください</div>
+                <div class="messages-box" id="messages-box">
+                    <!-- メッセージがここに表示されます -->
+                </div>
+                <div class="chat-input-area">
+                    <input type="text" id="message-input" placeholder="メッセージを入力..." onkeypress="if(event.key==='Enter') sendMessage()">
+                    <button onclick="sendMessage()">送信</button>
+                </div>
+            </div>
         </div>
     </div>
 
     <script>
-        let ws;
         let myYoshiID = "";
+        let myName = "";
         let currentTargetID = "";
+        let pollingTimer = null;
 
-        window.onload = () => {
-            const savedUser = localStorage.getItem('yoshichat_user');
-            if (savedUser) {
-                initUser(JSON.parse(savedUser));
+        function switchMode(mode) {
+            if (mode === 'register') {
+                document.getElementById('login-form').classList.add('hidden');
+                document.getElementById('register-form').classList.remove('hidden');
+            } else {
+                document.getElementById('register-form').classList.add('hidden');
+                document.getElementById('login-form').classList.remove('hidden');
             }
-        };
+        }
 
         async function register() {
-            const yoshi_id = document.getElementById('yoshi-id').value.trim();
-            const name = document.getElementById('user-name').value.trim();
-            const password = document.getElementById('password').value.trim();
+            const id = document.getElementById('reg-id').value.trim();
+            const name = document.getElementById('reg-name').value.trim();
+            const password = document.getElementById('reg-password').value.trim();
+            const errDiv = document.getElementById('reg-error');
+            errDiv.textContent = "";
 
-            if (!yoshi_id || !name || !password) return alert("全項目を入力してください");
+            if (!id || !name || !password) {
+                errDiv.textContent = "すべての項目を入力してください";
+                return;
+            }
 
             const res = await fetch('/api/register', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ yoshi_id, name, password })
+                body: JSON.stringify({ yoshi_id: id, name: name, password: password })
             });
-
             const data = await res.json();
             if (res.ok) {
-                localStorage.setItem('yoshichat_user', JSON.stringify(data.user));
-                initUser(data.user);
+                alert("登録成功！ログインしてください。");
+                switchMode('login');
             } else {
-                alert(data.detail || "エラーが発生しました");
+                errDiv.textContent = data.detail || "登録に失敗しました";
             }
         }
 
         async function login() {
-            const yoshi_id = document.getElementById('yoshi-id').value.trim();
-            const password = document.getElementById('password').value.trim();
+            const id = document.getElementById('login-id').value.trim();
+            const password = document.getElementById('login-password').value.trim();
+            const errDiv = document.getElementById('login-error');
+            errDiv.textContent = "";
 
-            if (!yoshi_id || !password) return alert("IDとパスワードを入力してください");
+            if (!id || !password) {
+                errDiv.textContent = "IDとパスワードを入力してください";
+                return;
+            }
 
             const res = await fetch('/api/login', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
-                body: JSON.stringify({ yoshi_id, password })
+                body: JSON.stringify({ yoshi_id: id, password: password })
             });
-
             const data = await res.json();
             if (res.ok) {
-                localStorage.setItem('yoshichat_user', JSON.stringify(data.user));
-                initUser(data.user);
+                myYoshiID = data.user.yoshiID;
+                myName = data.user.name;
+                document.getElementById('auth-container').classList.add('hidden');
+                document.getElementById('chat-screen').classList.remove('hidden');
+                document.getElementById('welcome-msg').textContent = `${myName} (${myYoshiID})`;
+                
+                startPolling();
             } else {
-                alert(data.detail || "ログインエラー");
+                errDiv.textContent = data.detail || "ログインに失敗しました";
             }
         }
 
-        function initUser(user) {
-            myYoshiID = user.yoshiID;
-            
-            if (ws) ws.close();
-
-            const protocol = location.protocol === 'https:' ? 'wss' : 'ws';
-            ws = new WebSocket(`${protocol}://${location.host}/ws/${myYoshiID}`);
-
-            ws.onmessage = (event) => {
-                const data = JSON.parse(event.data);
-                
-                if (data.type === "message") {
-                    if (data.from === currentTargetID) {
-                        addMessage(data.content, 'left', data.is_stamp);
-                    }
-                } else if (data.type === "friend_request_received" || data.type === "friend_request_accepted") {
-                    loadData();
-                }
-            };
-
-            showListScreen();
+        function logout() {
+            location.reload();
         }
 
-        async function requestFriend() {
-            const targetId = document.getElementById('add-target-id').value.trim();
-            if (!targetId) return alert("相手のyoshiIDを入力してください");
+        async function sendFriendRequest() {
+            const targetId = document.getElementById('friend-target-id').value.trim();
+            if (!targetId) return;
 
             const res = await fetch('/api/request_friend', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ my_id: myYoshiID, target_id: targetId })
             });
-
             const data = await res.json();
             if (res.ok) {
-                alert("申請を送信しました！");
-                document.getElementById('add-target-id').value = '';
+                alert("フレンド申請を送信しました！");
+                document.getElementById('friend-target-id').value = "";
             } else {
                 alert(data.detail || "申請に失敗しました");
             }
         }
 
+        async function loadFriendRequests() {
+            const res = await fetch(`/api/friend_requests/${myYoshiID}`);
+            const requests = await res.json();
+            const area = document.getElementById('friend-requests-area');
+            if (requests.length > 0) {
+                area.innerHTML = requests.map(r => `
+                    <div style="background:#fff3cd; padding:4px; margin-bottom:2px; border-radius:3px; display:flex; justify-content:space-between; align-items:center;">
+                        <span>${r.name} (${r.yoshiID}) から申請</span>
+                        <button onclick="acceptFriend('${r.yoshiID}')" style="width:auto; padding:2px 6px; font-size:11px; margin:0;">承認</button>
+                    </div>
+                `).join('');
+            } else {
+                area.innerHTML = "";
+            }
+        }
+
         async function acceptFriend(targetId) {
-            const res = await fetch('/api/accept_friend', {
+            await fetch('/api/accept_friend', {
                 method: 'POST',
                 headers: { 'Content-Type': 'application/json' },
                 body: JSON.stringify({ my_id: myYoshiID, target_id: targetId })
             });
-
-            const data = await res.json();
-            if (res.ok) {
-                loadData();
-            } else {
-                alert(data.detail || "承認に失敗しました");
-            }
+            loadFriends();
+            loadFriendRequests();
         }
 
-        async function loadData() {
-            const reqRes = await fetch(`/api/friend_requests/${myYoshiID}`);
-            const requests = await reqRes.json();
-            const reqSec = document.getElementById('request-section');
-            const reqList = document.getElementById('request-list');
-            reqList.innerHTML = '';
-
-            if (requests.length > 0) {
-                reqSec.style.display = 'block';
-                requests.forEach(r => {
-                    const item = document.createElement('div');
-                    item.className = 'friend-item';
-                    item.innerHTML = `
-                        <div class="friend-avatar">${r.name.charAt(0)}</div>
-                        <div class="friend-info">
-                            <div class="friend-name">${r.name}</div>
-                            <div class="friend-id">@${r.yoshiID}</div>
-                        </div>
-                        <button class="accept-btn" onclick="acceptFriend('${r.yoshiID}')">許可</button>
-                    `;
-                    reqList.appendChild(item);
-                });
-            } else {
-                reqSec.style.display = 'none';
-            }
-
+        async function loadFriends() {
             const res = await fetch(`/api/friends/${myYoshiID}`);
             const friends = await res.json();
-            const listContainer = document.getElementById('friend-list');
-            listContainer.innerHTML = '';
-
-            if (friends.length === 0) {
-                listContainer.innerHTML = '<div style="padding: 20px; text-align: center; color: #888; font-size: 13px;">フレンドがいません。<br>上部からyoshiIDを入力して申請してください。</div>';
-                return;
-            }
-
+            const listDiv = document.getElementById('friends-list');
+            
+            let html = '<div style="font-weight: bold; font-size: 13px; margin-bottom: 6px; color: #666;">フレンド</div>';
             friends.forEach(f => {
-                const item = document.createElement('div');
-                item.className = 'friend-item';
-                item.onclick = () => openChatScreen(f.yoshiID, f.name);
-                item.innerHTML = `
-                    <div class="friend-avatar">${f.name.charAt(0)}</div>
-                    <div class="friend-info">
-                        <div class="friend-name">${f.name}</div>
-                        <div class="friend-id">@${f.yoshiID}</div>
-                    </div>
-                `;
-                listContainer.appendChild(item);
+                const activeClass = (currentTargetID === f.yoshiID) ? 'active' : '';
+                html += `<div class="user-item ${activeClass}" onclick="selectChat('${f.yoshiID}', '${f.name}')">${f.name}</div>`;
             });
+            listDiv.innerHTML = html;
         }
 
-        function showListScreen() {
-            currentTargetID = "";
-            document.getElementById('auth-screen').style.display = 'none';
-            document.getElementById('chat-screen').style.display = 'none';
-            document.getElementById('list-screen').style.display = 'flex';
-            loadData();
+        function selectChat(id, name) {
+            currentTargetID = id;
+            document.getElementById('chat-header').textContent = `${name} とのチャット`;
+            loadMessages();
+            loadFriends(); // 選択中のハイライトを更新するため
         }
 
-        async function openChatScreen(targetId, targetName) {
-            currentTargetID = targetId;
-            document.getElementById('list-screen').style.display = 'none';
-            document.getElementById('chat-screen').style.display = 'flex';
-            document.getElementById('chat-target-name').innerText = targetName;
-            document.getElementById('chat-flow').innerHTML = '';
-            document.getElementById('stamp-picker').style.display = 'none';
-
-            const res = await fetch(`/api/messages/${myYoshiID}/${targetId}`);
-            const messages = await res.json();
-            messages.forEach(msg => {
-                const side = msg.sender_id === myYoshiID ? 'right' : 'left';
-                addMessage(msg.content, side, msg.is_stamp);
-            });
-        }
-
-        function toggleStampPicker() {
-            const picker = document.getElementById('stamp-picker');
-            picker.style.display = picker.style.display === 'grid' ? 'none' : 'grid';
-        }
-
-        function sendStamp(stampEmoji) {
+        async function loadMessages() {
             if (!currentTargetID) return;
-            ws.send(JSON.stringify({ to: currentTargetID, content: stampEmoji, is_stamp: true }));
-            addMessage(stampEmoji, 'right', true);
-            document.getElementById('stamp-picker').style.display = 'none';
+            const res = await fetch(`/api/messages/${myYoshiID}/${currentTargetID}`);
+            const messages = await res.json();
+            const box = document.getElementById('messages-box');
+            
+            const isAtBottom = box.scrollHeight - box.scrollTop <= box.clientHeight + 50;
+
+            box.innerHTML = messages.map(m => {
+                const type = (m.sender_id === myYoshiID) ? 'sent' : 'received';
+                return `<div class="message ${type}">${escapeHTML(m.content)}</div>`;
+            }).join('');
+
+            if (isAtBottom) {
+                box.scrollTop = box.scrollHeight;
+            }
         }
 
-        function sendMessage() {
+        async function sendMessage() {
             const input = document.getElementById('message-input');
             const content = input.value.trim();
+            if (!content || !currentTargetID) return;
 
-            if (!currentTargetID || !content) return;
+            await fetch('/api/send_message', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                    sender_id: myYoshiID,
+                    receiver_id: currentTargetID,
+                    content: content,
+                    is_stamp: false
+                })
+            });
 
-            ws.send(JSON.stringify({ to: currentTargetID, content: content, is_stamp: false }));
-            addMessage(content, 'right', false);
-            input.value = '';
+            input.value = "";
+            loadMessages();
         }
 
-        function addMessage(text, side, isStamp = false) {
-            const flow = document.getElementById('chat-flow');
-            const bubble = document.createElement('div');
-            
-            if (isStamp) {
-                bubble.className = `msg-bubble msg-${side} stamp-bubble`;
-            } else {
-                bubble.className = `msg-bubble msg-${side}`;
-            }
-            
-            bubble.innerText = text;
-
-            flow.appendChild(bubble);
-            flow.scrollTop = flow.scrollHeight;
+        // 定期的にデータ（申請・フレンド・メッセージ）を自動更新するポーリング処理
+        function startPolling() {
+            if (pollingTimer) clearInterval(pollingTimer);
+            pollingTimer = setInterval(() => {
+                if (myYoshiID) {
+                    loadFriendRequests();
+                    loadFriends();
+                    if (currentTargetID) {
+                        loadMessages();
+                    }
+                }
+            }, 1500); // 1.5秒ごとにサーバーと同期
         }
 
-        function logout() {
-            localStorage.removeItem('yoshichat_user');
-            location.reload();
+        function escapeHTML(str) {
+            return str.replace(/[&'`<>"]/g, match => ({
+                '&': '&amp;',
+                QUOTE: '&quot;',
+                "'": '&#x27;',
+                '`': '&#x60;',
+                '<': '&lt;',
+                '>': '&gt;',
+            })[match] || match);
         }
     </script>
 </body>
